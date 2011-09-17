@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@+id/mnu_read_cue"
+  	    android:title="@string/read_cue"/>
+  <item android:id="@+id/mnu_read_anki"
+  	    android:title="@string/read_anki"/>
+  <item android:id="@+id/mnu_settings"
+  	    android:title="@string/settings"/>
+  <item android:id="@+id/mnu_exit"
+  	    android:title="@string/exit"/>
+</menu>

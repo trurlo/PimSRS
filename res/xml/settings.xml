@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference android:title="@string/pref_use_zeemote_title" android:summary="@string/pref_use_zeemote_hint" android:defaultValue="false" android:key="use_zeemote"></CheckBoxPreference>
+    <CheckBoxPreference android:title="@string/pref_autoadvance_title" android:summary="@string/pref_autoadvance_hint" android:defaultValue="false" android:key="autoadvance"></CheckBoxPreference>
+    <CheckBoxPreference android:title="@string/pref_read_recent_title" android:summary="@string/pref_read_recent_hint" android:defaultValue="false" android:key="read_recent"></CheckBoxPreference>
+    <CheckBoxPreference android:title="@string/pref_confirm_pair_title" android:summary="@string/pref_confirm_pair_hint" android:defaultValue="false" android:key="confirm_pair"></CheckBoxPreference>
+    <CheckBoxPreference android:title="@string/pref_autopause_when_adding_title" android:summary="@string/pref_autopause_when_adding_hint" android:defaultValue="false" android:key="autopause_when_adding"></CheckBoxPreference>
+</PreferenceScreen>

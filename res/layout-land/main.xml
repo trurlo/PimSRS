@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="bottom" android:orientation="vertical">
+    <TextView android:text="(no file parsed yet)" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_gravity="fill" android:padding="10dip" android:id="@+id/cue_file"></TextView>
+    <TextView android:text="(no db opened yet)" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_gravity="fill" android:padding="10dip" android:id="@+id/anki_file"></TextView>
+    <TableLayout
+        android:id="@+id/tblDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1">
+        <View android:layout_height="2dip" android:background="#FF909090" android:layout_width="wrap_content" android:id="@+id/view1"></View>
+        <TableRow>
+            <TextView
+                android:padding="3dip" android:text="No. of lines"/>
+            <TextView
+                android:padding="3dip" android:text="---" android:id="@+id/no_of_lines"/>
+        </TableRow>
+
+        <View
+            android:layout_height="2dip"
+            android:background="#FF909090" />
+
+        <TableRow>
+            <TextView
+                android:padding="3dip" android:text="Current line"/>
+            <TextView
+                android:padding="3dip" android:text="---" android:id="@+id/current_line"/>
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:padding="3dip" android:text="Timestamp (ms)"/>
+            <TextView
+                android:padding="3dip" android:text="---" android:id="@+id/timestamp"/>
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:padding="3dip" android:text="Silent"/>
+            <TextView
+                android:padding="3dip" android:id="@+id/silent" android:text="---"/>
+        </TableRow>
+        <TableRow android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:padding="3dip" android:text="Audio file"></TextView>
+            <TextView android:id="@+id/audio_file" android:layout_height="wrap_content" android:layout_width="wrap_content" android:padding="3dip" android:text="---"></TextView>
+        </TableRow>
+
+        <View
+            android:layout_height="2dip"
+            android:background="#FF909090" />
+    </TableLayout>
+	<TableLayout
+		android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:stretchColumns="*">
+        
+        <TableRow>
+         <Button android:id="@+id/btn_prev" android:text="Prev" android:enabled="false"/>
+         <Button android:id="@+id/btn_play" android:text="Play" android:enabled="false"/>
+         <Button android:id="@+id/btn_next" android:text="Next" android:enabled="false"/>
+         <Button android:id="@+id/btn_autoplay" android:text="Play auto" android:enabled="false"/>
+         <Button android:id="@+id/btn_add_pair" android:text="Add pair" android:enabled="false"/>
+         <Button android:id="@+id/btn_test" android:text="Test" android:enabled="false"/>
+        </TableRow>
+    </TableLayout>
+			 	        
+</LinearLayout>

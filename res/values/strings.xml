@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, PimSRS!</string>
+    <string name="app_name">PimSRS</string>
+    <string name="read_cue">Read .cue</string>
+    <string name="read_anki">Read .anki</string>
+    <string name="add_current_pair">Add current pair</string>
+    <string name="settings">Settings</string>
+    <string name="exit">Exit</string>
+    <string name="pref_use_zeemote_title">Zeemote support</string>
+    <string name="pref_use_zeemote_hint">Use Zeemote JS1 controller to navigate playback and adding cards.</string>
+    <string name="pref_read_recent_title">Read most recent files</string>
+    <string name="pref_read_recent_hint">Read most recently used .cue and .anki files on startup.</string>
+    <string name="pref_autoadvance_title">Auto advance</string>
+    <string name="pref_autoadvance_hint">Open next .cue file (if found) automatically.</string>
+    <string name="pref_confirm_pair_title">Confirm adding pair</string>
+    <string name="pref_confirm_pair_hint">Read aloud both question and answer before adding them as a pair.</string>
+    <string name="pref_autopause_when_adding_title">Autopause when adding pair</string>
+    <string name="pref_autopause_when_adding_hint">Stop autoplay (if active) when adding new pair.</string>
+</resources>
