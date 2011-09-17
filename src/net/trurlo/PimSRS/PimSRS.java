@@ -203,10 +203,14 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 	}
     
 	private boolean copyFile(String src, String dst){
+		Log.d("PimSRS","copying file");
 		File srcFile = new File(src);
+		Log.d("PimSRS"," src: "+src);
 		File dstFile = new File(dst);
+		Log.d("PimSRS"," dst: "+dst);
 		if (srcFile.exists()){
           try {
+    	   Log.d("PimSRS"," src exists, copying");
 		   FileChannel srcChannel = new FileInputStream(srcFile).getChannel();
            FileChannel dstChannel = new FileOutputStream(dstFile).getChannel();
            dstChannel.transferFrom(srcChannel, 0, srcChannel.size());
@@ -215,6 +219,7 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
    	       return true;
           }
           catch (Exception e){
+      		Log.d("PimSRS"," copying error: "+e.getMessage());
         	  return false;
           }
 		}
@@ -237,8 +242,8 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 		String strA = String.format("[sound:%s_%03d.mp3]",currentCueFileStub,pimLines.get(currentPimLineIndex).index);
 		String srcFileQ = String.format("%s_%03d.mp3",currentFullCueFileStub,pimLines.get(currentPimLineIndex-1).index);
 		String srcFileA = String.format("%s_%03d.mp3",currentFullCueFileStub,pimLines.get(currentPimLineIndex).index);
-		String dstFileQ = String.format("%s\\%s_%03d.mp3",mediaFolder.getPath(),currentCueFileStub,pimLines.get(currentPimLineIndex-1).index);
-		String dstFileA = String.format("%s\\%s_%03d.mp3",mediaFolder.getPath(),currentCueFileStub,pimLines.get(currentPimLineIndex).index);
+		String dstFileQ = String.format("%s/%s_%03d.mp3",mediaFolder.getPath(),currentCueFileStub,pimLines.get(currentPimLineIndex-1).index);
+		String dstFileA = String.format("%s/%s_%03d.mp3",mediaFolder.getPath(),currentCueFileStub,pimLines.get(currentPimLineIndex).index);
 		String strNow = Double.toString(System.currentTimeMillis()/1000.0);
 
 		copyFile(srcFileQ,dstFileQ);
@@ -673,6 +678,7 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
     }
     
     private boolean readAnkiFile(String ankiFile){
+		Log.d("PimSRS","reading "+ankiFile);
     	if ((ankiFile == null)||(ankiFile == "")) return false;
     	try 
     	{
@@ -686,6 +692,7 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
     	return true;
     	}
     	catch (Exception e){
+    		Log.d("PimSRS"," opening error: "+e.getMessage());
     		ankiFileRead = false;
     		txtAnkiFile.setText("(no .anki opened)");
     		this.ankiFileName = "";
