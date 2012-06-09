@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
@@ -44,18 +45,15 @@ import android.widget.Toast;
 
 //import com.zeemote.zc.Configuration;
 import com.zeemote.zc.Controller;
-import com.zeemote.zc.event.BatteryEvent;
 import com.zeemote.zc.event.ButtonEvent;
 import com.zeemote.zc.event.ControllerEvent;
 import com.zeemote.zc.event.DisconnectEvent;
 import com.zeemote.zc.event.IButtonListener;
-import com.zeemote.zc.event.IJoystickListener;
-import com.zeemote.zc.event.IStatusListener;
-import com.zeemote.zc.event.JoystickEvent;
+import com.zeemote.zc.util.JoystickToButtonAdapter;
 import com.zeemote.zc.ui.android.ControllerAndroidUi;
 
 
-public class PimSRS extends Activity implements OnClickListener,IStatusListener, IJoystickListener, IButtonListener  {
+public class PimSRS extends Activity implements OnClickListener, IButtonListener  {
     /** Called when the activity is first created. */
 	private static final String TAG = "PimSRS";
 	private TextView txtCueFile;
@@ -81,15 +79,17 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
     private Button btnTest;
     private MediaPlayer mp;
 	private Controller controller;
+	private JoystickToButtonAdapter adapter;
 	private ControllerAndroidUi controllerUi;
-	public static final int MSG_ZEEMOTE = 0x101;
-	public static final int MSG_ZEEMOTE_BUTTON_A = 0x102;
-	public static final int MSG_ZEEMOTE_BUTTON_B = 0x103;
-	public static final int MSG_ZEEMOTE_BUTTON_C = 0x104;
-	public static final int MSG_ZEEMOTE_BUTTON_D = 0x105;
-	public static final int MSG_ZEEMOTE_STATUS = 0x106;
-	public static final int MSG_ZEEMOTE_JOYSTICK = 0x107;
-	public static final int MSG_AUTOPLAY = 0x108;
+    private static final int MSG_ZEEMOTE_BUTTON_A = 0x110;
+    private static final int MSG_ZEEMOTE_BUTTON_B = MSG_ZEEMOTE_BUTTON_A+1;
+    private static final int MSG_ZEEMOTE_BUTTON_C = MSG_ZEEMOTE_BUTTON_A+2;
+    private static final int MSG_ZEEMOTE_BUTTON_D = MSG_ZEEMOTE_BUTTON_A+3;
+    private static final int MSG_ZEEMOTE_STICK_UP = MSG_ZEEMOTE_BUTTON_A+4;
+    private static final int MSG_ZEEMOTE_STICK_DOWN = MSG_ZEEMOTE_BUTTON_A+5;
+    private static final int MSG_ZEEMOTE_STICK_LEFT = MSG_ZEEMOTE_BUTTON_A+6;
+    private static final int MSG_ZEEMOTE_STICK_RIGHT = MSG_ZEEMOTE_BUTTON_A+7;
+	public static final int MSG_AUTOPLAY = MSG_ZEEMOTE_BUTTON_A+8;
 	private String info;
 	private TextToSpeech mTts;
 	private boolean autoplay = false;
@@ -105,13 +105,10 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 		
 		public void handleMessage(Message msg){
 			switch(msg.what){
-			case MSG_ZEEMOTE:
-				txtCueFile.setText(info);
-				break;
-			case MSG_ZEEMOTE_BUTTON_A:
+			case MSG_ZEEMOTE_STICK_RIGHT:
 				plPlayNextNonSilent();
 				break;
-			case MSG_ZEEMOTE_BUTTON_B:
+			case MSG_ZEEMOTE_STICK_LEFT:
 				plPlayPrevNonSilent();
 				break;
 			case MSG_ZEEMOTE_BUTTON_C:
@@ -119,6 +116,9 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 				break;
 			case MSG_ZEEMOTE_BUTTON_D:
 				addCurrentPair();
+				break;
+			case MSG_ZEEMOTE_BUTTON_A:
+				playCurrent();
 				break;
 			case MSG_AUTOPLAY:
 				continueAutoplay();
@@ -159,9 +159,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
     	
 		if (Prefs.getUseZeemote(this)){
     	 controller = new Controller(Controller.CONTROLLER_1);       
-		 controller.addStatusListener(this);
-		 controller.addButtonListener(this);
-		 controller.addJoystickListener(this);
 		 controllerUi = new ControllerAndroidUi(this, controller);
   		 controllerUi.startConnectionProcess();
 		}
@@ -175,6 +172,19 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 		}
 		
 		mTts = new TextToSpeech(this, null);
+    }
+    
+    @Override
+    protected void onResume(){
+    	super.onResume();
+    	Log.d("PimSRS","onresume");
+        if ((controller != null) && (controller.isConnected())){
+      	  controller.addButtonListener(this);
+        	  adapter = new JoystickToButtonAdapter();
+        	  controller.addJoystickListener(adapter);
+        	  adapter.addButtonListener(this);
+        	  //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
     
     protected void continueAutoplay() {
@@ -479,10 +489,35 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
         return id;
     }
 
+    @Override
+    protected void onDestroy(){
+		super.onDestroy();
+        if ((controller != null) && (controller.isConnected())){
+        	try {
+        		Log.d("Zeemote","trying to disconnect in onDestroy...");
+        		controller.disconnect();
+        	}
+        	catch (IOException ex){
+        		Log.e("Zeemote","Error on zeemote disconnection in onDestroy: "+ex.getMessage());
+        	}
+        }
+		if ((ankiDB != null)&&(ankiDB.isOpen())) ankiDB.close();
+		savePimState();
+    }
+    
 	@Override
     protected void onPause(){
     	super.onPause();
     	savePimState();
+        if ((controller != null) && (controller.isConnected())){ 
+        	Log.d("Zeemote","Removing listener in onPause");
+        	controller.removeButtonListener(this);
+        	controller.removeJoystickListener(adapter);
+    		adapter.removeButtonListener(this);
+    		adapter = null;
+            //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    	
     }
     
     @Override
@@ -506,7 +541,7 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
             startActivity(new Intent(this, Prefs.class));
             return true;
         case R.id.mnu_exit:
-            exitGracefully();
+            this.finish();
             return true;
         }
        
@@ -525,15 +560,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
     	editor.commit();    	
     }
 
-    private void exitGracefully(){
-		try {
-			if (controller.isConnected()) controller.disconnect();
-			if ((ankiDB != null)&&(ankiDB.isOpen())) ankiDB.close();
-			savePimState();
-		} catch (Exception e) {}
-		this.finish();
-    }
-    
     private class SearchForCues extends AsyncTask<Void, Void, Void> {
     	@Override
     	protected Void doInBackground(Void... arg0) {
@@ -555,7 +581,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 	         ab.setTitle("Pick a .cue");
 	         final String[] fileArray = fileList.toArray(new String[fileList.size()]); 
 	         ab.setItems(fileArray, new DialogInterface.OnClickListener() {
-				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					readCueFile(fullFileList.get(which));
 				}
@@ -665,7 +690,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 	         aab.setTitle("Pick an .anki");
 	         final String[] ankiFileArray = ankiFileList.toArray(new String[ankiFileList.size()]); 
 	         aab.setItems(ankiFileArray, new DialogInterface.OnClickListener() {
-				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					readAnkiFile(ankiFileList.get(which));
 				}
@@ -756,6 +780,7 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 	}
 
 	private void updateEnableds(){
+		//TODO: get rid of index errors when .anki opened before .cue
 		btnPrev.setEnabled(currentPimLineIndex>0);
 		btnNext.setEnabled(currentPimLineIndex<pimLines.size());
 		btnPlay.setEnabled(!pimLines.get(currentPimLineIndex).silence);
@@ -764,7 +789,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 		btnTest.setEnabled(true);
 	}
 	
-	@Override
 	public void onClick(View v) {
 		switch (v.getId()){
 		case R.id.btn_prev:
@@ -839,43 +863,25 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
 		else mTts.speak("Cannot advance backwards", TextToSpeech.QUEUE_FLUSH, null);
 	}
 	
-	@Override
 	public void buttonPressed(ButtonEvent arg0) {
-		Message msg = new Message();
-		// TODO Auto-generated method stub
-		switch (arg0.getButtonID()){
-		case 0: msg.what = MSG_ZEEMOTE_BUTTON_A;
-			break;
-		case 1: msg.what = MSG_ZEEMOTE_BUTTON_B;
-			break;
-		case 2: msg.what = MSG_ZEEMOTE_BUTTON_C;
-			break;
-		case 3: msg.what = MSG_ZEEMOTE_BUTTON_D;
-			break;
-		default: msg.what = -1;
-		}
-		if (msg.what > -1) this.ZeemoteHandler.sendMessage(msg);
 	}
 
-	@Override
 	public void buttonReleased(ButtonEvent arg0) {
-		// TODO Auto-generated method stub
-		
+		Log.d("Zeemote","Button released, id: "+arg0.getButtonID());
+		Message msg = Message.obtain();
+		msg.what = MSG_ZEEMOTE_BUTTON_A + arg0.getButtonID(); //Button A = 0, Button B = 1...
+		if ((msg.what >= MSG_ZEEMOTE_BUTTON_A) && (msg.what <= MSG_ZEEMOTE_BUTTON_D)) { //make sure messages from future buttons don't get throug
+			this.ZeemoteHandler.sendMessage(msg);
+		}
+		if (arg0.getButtonID()==-1)
+		{
+			msg.what = MSG_ZEEMOTE_BUTTON_D+arg0.getButtonGameAction();
+			if ((msg.what >= MSG_ZEEMOTE_STICK_UP) && (msg.what <= MSG_ZEEMOTE_STICK_RIGHT)) { //make sure messages from future buttons don't get throug
+				this.ZeemoteHandler.sendMessage(msg);
+			}
+		}
 	}
 
-	@Override
-	public void joystickMoved(JoystickEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void batteryUpdate(BatteryEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void connected(ControllerEvent arg0) {
 		// TODO Auto-generated method stub
         final PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -883,7 +889,6 @@ public class PimSRS extends Activity implements OnClickListener,IStatusListener,
         wakeLock.acquire();
 	}
 
-	@Override
 	public void disconnected(DisconnectEvent arg0) {
 		// TODO Auto-generated method stub
 		if (wakeLock!=null) {
